@@ -245,7 +245,42 @@ twine check dist/*
 print_success "Package check passed"
 echo ""
 
-# Step 9: Confirm before upload
+# Step 9: Check for PyPI credentials
+if [ ! -f "$HOME/.pypirc" ]; then
+    print_warning "No ~/.pypirc found"
+    echo ""
+    echo "To avoid entering credentials each time, create ~/.pypirc:"
+    echo ""
+    if [ "$TEST_PYPI" = true ]; then
+        echo "  [testpypi]"
+        echo "  repository = https://test.pypi.org/legacy/"
+        echo "  username = __token__"
+        echo "  password = pypi-YOUR_TEST_PYPI_TOKEN_HERE"
+        echo ""
+        echo "Get your token from: https://test.pypi.org/manage/account/token/"
+    else
+        echo "  [pypi]"
+        echo "  repository = https://upload.pypi.org/legacy/"
+        echo "  username = __token__"
+        echo "  password = pypi-YOUR_PYPI_TOKEN_HERE"
+        echo ""
+        echo "Get your token from: https://pypi.org/manage/account/token/"
+    fi
+    echo ""
+    echo "Then run: chmod 600 ~/.pypirc"
+    echo ""
+    
+    if [ "$AUTO_YES" = false ]; then
+        read -p "$(echo -e ${YELLOW}Continue with manual token entry? [Y/n]:${NC} )" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Nn]$ ]]; then
+            exit 0
+        fi
+    fi
+    echo ""
+fi
+
+# Step 10: Confirm before upload
 if [ "$AUTO_YES" = false ]; then
     echo -e "${YELLOW}╔════════════════════════════════════════════╗${NC}"
     echo -e "${YELLOW}║           Ready to Publish!                ║${NC}"
@@ -274,7 +309,7 @@ if [ "$AUTO_YES" = false ]; then
     echo ""
 fi
 
-# Step 10: Upload to PyPI
+# Step 11: Upload to PyPI
 print_status "Uploading to $([ "$TEST_PYPI" = true ] && echo "TestPyPI" || echo "PyPI")..."
 
 if [ "$TEST_PYPI" = true ]; then
@@ -308,4 +343,75 @@ fi
 
 echo ""
 
-# Step 11: 
+# Step 12: Push to git (if version was bumped)
+if [ -n "$BUMP_VERSION" ]; then
+    if [ "$AUTO_YES" = false ]; then
+        read -p "$(echo -e ${YELLOW}Push to git repository? [Y/n]:${NC} )" -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+            print_status "Pushing to git..."
+            git push
+            git push --tags
+            print_success "Pushed to git with tags"
+        fi
+    else
+        print_status "Pushing to git..."
+        git push
+        git push --tags
+        print_success "Pushed to git with tags"
+    fi
+    echo ""
+fi
+
+# Step 13: Final message
+echo -e "${GREEN}╔════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║    Publishing completed successfully! 🎉   ║${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════════╝${NC}"
+echo ""
+
+if [ "$TEST_PYPI" = true ]; then
+    echo -e "${YELLOW}Next steps:${NC}"
+    echo "  1. Test the package from TestPyPI:"
+    echo "     pip install --index-url https://test.pypi.org/simple/ saini"
+    echo ""
+    echo "  2. If everything works, publish to production:"
+    echo "     ./publish.sh"
+else
+    echo -e "${YELLOW}What's next:${NC}"
+    echo "  1. Share your package:"
+    echo "     pip install saini"
+    echo ""
+    echo "  2. Create a GitHub release:"
+    echo "     https://github.com/rohitsainier/saini/releases/new"
+    echo ""
+    echo "  3. Update your documentation"
+    echo ""
+    echo "  4. Announce on social media! 🚀"
+fi
+echo ""
+
+# Step 14: Show package stats (if on PyPI)
+if [ "$TEST_PYPI" = false ]; then
+    echo -e "${CYAN}Package links:${NC}"
+    echo "  PyPI: https://pypi.org/project/saini/"
+    echo "  Install: pip install saini"
+    echo "  Docs: https://github.com/rohitsainier/saini"
+    echo ""
+fi
+
+# Optional: Open browser
+if [ "$AUTO_YES" = false ]; then
+    read -p "$(echo -e ${YELLOW}Open package page in browser? [Y/n]:${NC} )" -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        if [ "$TEST_PYPI" = true ]; then
+            open "https://test.pypi.org/project/saini/" 2>/dev/null || xdg-open "https://test.pypi.org/project/saini/" 2>/dev/null || echo "Visit: https://test.pypi.org/project/saini/"
+        else
+            open "https://pypi.org/project/saini/" 2>/dev/null || xdg-open "https://pypi.org/project/saini/" 2>/dev/null || echo "Visit: https://pypi.org/project/saini/"
+        fi
+    fi
+fi
+
+echo ""
+print_success "All done! 🎊"
+echo ""
