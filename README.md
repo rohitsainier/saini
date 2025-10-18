@@ -1,6 +1,3 @@
-# Updated `README.md` - Complete and Professional
-
-```markdown
 # Saini 🚀
 
 [![PyPI version](https://badge.fury.io/py/saini.svg)](https://badge.fury.io/py/saini)
