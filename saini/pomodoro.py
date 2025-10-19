@@ -74,7 +74,7 @@ class PomodoroTimer:
             self.state_file.unlink()
     
     def get_status(self):
-        """Get current Pomodoro status."""
+        """Get current Pomodoro status with progress."""
         if not self.state_file.exists():
             return None
         
@@ -89,8 +89,22 @@ class PomodoroTimer:
         
         elapsed = int(time.time()) - start
         remaining = duration - elapsed
+        progress = min(100, int((elapsed / duration) * 100))
+        
+        # Create progress bar
+        bar_length = 20
+        filled = int((progress / 100) * bar_length)
+        bar = '█' * filled + '░' * (bar_length - filled)
         
         if session_type == 'work':
-            return f"  [magenta]🍅 Pomodoro: Work Session #{count + 1}[/magenta]\n  Time Left: [yellow]{format_duration(remaining)}[/yellow]"
+            return (
+                f"  [magenta]🍅 Pomodoro Session #{count + 1}[/magenta]\n"
+                f"  [{bar}] {progress}%\n"
+                f"  Time Left: [yellow]{format_duration(remaining)}[/yellow]"
+            )
         else:
-            return f"  [cyan]☕ Break Time[/cyan]\n  Time Left: [yellow]{format_duration(remaining)}[/yellow]"
+            return (
+                f"  [cyan]☕ Break Time[/cyan]\n"
+                f"  [{bar}] {progress}%\n"
+                f"  Time Left: [yellow]{format_duration(remaining)}[/yellow]"
+            )

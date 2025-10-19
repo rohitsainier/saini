@@ -1,13 +1,11 @@
-"""Command-line interface for Saini."""
-
 import click
 from rich.console import Console
-from pathlib import Path
 
-from .tracker import TimeTracker
+from .tracker import TimeTracker, status_live, status_static
 from .config import Config
 from .reports import Reports
 from .tree import ProjectTree
+from .dashboard import show_dashboard
 
 console = Console()
 
@@ -17,7 +15,8 @@ console = Console()
 def main(ctx):
     """Saini - Developer productivity tools."""
     if ctx.invoked_subcommand is None:
-        ctx.invoke(status)
+        # Show live status by default
+        status_live()
 
 
 # ============================================================================
@@ -60,12 +59,25 @@ def resume():
     tracker = TimeTracker()
     tracker.resume()
 
+@main.command()
+def dashboard():
+    """Show live dashboard with all stats."""
+    show_dashboard()
+
 
 @main.command()
-def status():
-    """Show current session status."""
-    tracker = TimeTracker()
-    tracker.status()
+@click.option('--live/--static', default=True, help='Show live updating timer')
+def status(live):
+    """Show current session status with live timer.
+    
+    Examples:
+        saini status           # Live updating timer (default)
+        saini status --static  # Static snapshot
+    """
+    if live:
+        status_live()
+    else:
+        status_static()
 
 
 # ============================================================================
