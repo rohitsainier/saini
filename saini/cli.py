@@ -182,15 +182,19 @@ def export(format, output):
 @click.option('--output', '-o', help='Save tree to file')
 @click.option('--format', '-f', type=click.Choice(['text', 'json']), default='text', help='Output format')
 @click.option('--ignore', '-i', multiple=True, help='Additional patterns to ignore')
-def tree(path, depth, hidden, no_icons, size, output, format, ignore):
+@click.option('--analyze', is_flag=True, help='Analyze structure and suggest improvements')
+def tree(path, depth, hidden, no_icons, size, output, format, ignore, analyze):
     """Generate project structure tree.
     
     Examples:
         saini tree                          # Show tree of current directory
+        saini tree --analyze                # Show tree with structure analysis
         saini tree -p /path/to/project      # Show tree of specific path
         saini tree -d 3                     # Limit depth to 3 levels
+        saini tree -d 3 --analyze           # Analyze with depth limit
         saini tree -a                       # Show hidden files
         saini tree -s                       # Show file sizes
+        saini tree -a -s --analyze          # Full analysis with sizes
         saini tree -o tree.txt              # Save to file
         saini tree -i "*.pyc" -i "test_*"   # Ignore additional patterns
     """
@@ -200,7 +204,8 @@ def tree(path, depth, hidden, no_icons, size, output, format, ignore):
         show_hidden=hidden,
         custom_ignore=set(ignore) if ignore else None,
         show_size=size,
-        icons=not no_icons
+        icons=not no_icons,
+        analyze=analyze
     )
     
     if output:

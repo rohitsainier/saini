@@ -1,6 +1,6 @@
 """Saini - Developer productivity tools."""
 
-__version__="1.0.2"
+__version__="1.0.3"
 __author__ = "Rohit Saini"
 __email__ = "rohitsainier@gmail.com"
 
