@@ -5,13 +5,14 @@ from .tracker import TimeTracker, status_live, status_static
 from .config import Config
 from .reports import Reports
 from .tree import ProjectTree
+from . import __version__
 from .dashboard import show_dashboard
 
 console = Console()
 
 @click.group(invoke_without_command=True)
 @click.pass_context
-@click.version_option(version="1.0.0", prog_name="Saini")
+@click.version_option(version=__version__, prog_name="Saini")
 def main(ctx):
     """Saini - Developer productivity tools."""
     if ctx.invoked_subcommand is None:

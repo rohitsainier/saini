@@ -11,7 +11,7 @@ except FileNotFoundError:
 
 setup(
     name="saini",
-    version="1.0.4",
+    version="1.0.5",
     
     # Description
     description="Developer productivity toolkit: time tracking, Pomodoro timer, project tree visualization, and automation tools",
