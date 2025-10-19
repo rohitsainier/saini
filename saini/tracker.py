@@ -153,7 +153,7 @@ class TimeTracker:
             f.write(f"{session_data}|{pause_time}\n")
         
         console.print("⏸ Session paused", style="yellow bold")
-        console.print("  Use 'tt resume' to continue")
+        console.print("  Use 'saini resume' to continue")
     
     def resume(self):
         """Resume paused session."""
@@ -211,7 +211,7 @@ class TimeTracker:
                 f"  Branch:  [cyan]{branch}[/cyan]\n"
                 f"  Task:    [cyan]{description}[/cyan]\n"
                 f"  Paused:  [yellow]{format_duration(pause_duration)}[/yellow]\n\n"
-                f"  Use [green]tt resume[/green] to continue",
+                f"  Use [green]saini resume[/green] to continue",
                 title="Time Tracker",
                 border_style="yellow"
             ))
@@ -221,7 +221,7 @@ class TimeTracker:
         if not self.current_session_file.exists():
             console.print(Panel.fit(
                 "[yellow]⊘ No active session[/yellow]\n\n"
-                "  Use [green]tt start \"task description\"[/green] to begin tracking",
+                "  Use [green]saini start \"task description\"[/green] to begin tracking",
                 title="Time Tracker",
                 border_style="yellow"
             ))

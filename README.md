@@ -252,7 +252,7 @@ saini report week
 # Total: 26h 35m
 
 # Export for timesheet
-saini export csv timesheet-january-2024.csv
+saini export csv 
 ```
 
 ### Example 4: Multi-Project Development
@@ -351,30 +351,6 @@ Idle Detection        ✓ Enabled
 Idle Threshold        10 minutes
 ```
 
-## 🏗️ Project Structure
-
-```
-saini/
-├── saini/               # Main package
-│   ├── __init__.py      # Package initialization
-│   ├── cli.py           # Command-line interface
-│   ├── tracker.py       # Time tracking logic
-│   ├── pomodoro.py      # Pomodoro timer
-│   ├── idle_detection.py # Idle detection
-│   ├── reports.py       # Report generation
-│   ├── config.py        # Configuration management
-│   ├── tree.py          # Project tree visualization
-│   └── utils.py         # Utility functions
-├── setup.py             # Package setup
-├── requirements.txt     # Dependencies
-├── install.sh           # Local installation script
-├── publish.sh           # Publishing script
-├── version.py           # Version management
-├── Makefile            # Development shortcuts
-├── README.md           # This file
-├── LICENSE             # MIT License
-└── .gitignore          # Git ignore rules
-```
 
 ## ⚙️ Configuration
 
