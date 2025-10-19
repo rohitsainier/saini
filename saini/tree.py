@@ -1,4 +1,4 @@
-"""Project structure tree generator."""
+"""Project structure tree generator with best practices analysis."""
 
 import os
 from pathlib import Path
@@ -153,10 +153,103 @@ class ProjectTree:
             'dirs': 0,
             'total_size': 0,
         }
-
+        
         # Analyzer
         self.analyzer = ProjectAnalyzer(self.root_path) if analyze else None
+    
+    def _should_ignore(self, path):
+        """Check if path should be ignored."""
+        name = path.name
         
+        # Hidden files
+        if not self.show_hidden and name.startswith('.'):
+            return True
+        
+        # Check ignore patterns
+        for pattern in self.ignore_patterns:
+            if pattern.startswith('*'):
+                # Extension pattern
+                if name.endswith(pattern[1:]):
+                    return True
+            elif name == pattern or name.startswith(pattern):
+                return True
+        
+        return False
+    
+    def _get_icon(self, path):
+        """Get icon for file/folder."""
+        if not self.icons:
+            return ''
+        
+        if path.is_dir():
+            return '📁 '
+        
+        # Check specific filenames first
+        for key, icon in self.FILE_ICONS.items():
+            if not key.startswith('.') and path.name.lower().startswith(key.lower()):
+                return f'{icon} '
+        
+        # Check extension
+        ext = path.suffix.lower()
+        return self.FILE_ICONS.get(ext, '📄 ')
+    
+    def _format_size(self, size):
+        """Format file size."""
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024.0:
+                return f"{size:.1f}{unit}"
+            size /= 1024.0
+        return f"{size:.1f}TB"
+    
+    def _get_file_info(self, path):
+        """Get formatted file information."""
+        icon = self._get_icon(path)
+        name = path.name
+        
+        if path.is_file() and self.show_size:
+            try:
+                size = path.stat().st_size
+                self.stats['total_size'] += size
+                return f"{icon}{name} [{self._format_size(size)}]"
+            except (OSError, PermissionError):
+                return f"{icon}{name} [?]"
+        
+        return f"{icon}{name}"
+    
+    def _build_tree(self, tree, path, prefix="", depth=0):
+        """Recursively build tree structure."""
+        if self.max_depth is not None and depth >= self.max_depth:
+            return
+        
+        try:
+            # Get all items in directory
+            items = sorted(path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower()))
+            
+            for item in items:
+                if self._should_ignore(item):
+                    continue
+                
+                if item.is_dir():
+                    self.stats['dirs'] += 1
+                    branch = tree.add(self._get_file_info(item), style="bold cyan")
+                    self._build_tree(branch, item, prefix + "  ", depth + 1)
+                else:
+                    self.stats['files'] += 1
+                    # Color code by file type
+                    if item.suffix in ['.py', '.js', '.java', '.cpp', '.go']:
+                        style = "green"
+                    elif item.suffix in ['.html', '.css', '.json', '.yaml']:
+                        style = "blue"
+                    elif item.suffix in ['.md', '.txt']:
+                        style = "yellow"
+                    else:
+                        style = "white"
+                    
+                    tree.add(self._get_file_info(item), style=style)
+        
+        except PermissionError:
+            tree.add("[Permission Denied]", style="red italic")
+    
     def generate(self):
         """Generate and display the tree with optional analysis."""
         # Create root tree
@@ -296,124 +389,6 @@ class ProjectTree:
                 title="🏗️  Recommended JavaScript Project Structure",
                 border_style="green"
             ))
-    
-    def _should_ignore(self, path):
-        """Check if path should be ignored."""
-        name = path.name
-        
-        # Hidden files
-        if not self.show_hidden and name.startswith('.'):
-            return True
-        
-        # Check ignore patterns
-        for pattern in self.ignore_patterns:
-            if pattern.startswith('*'):
-                # Extension pattern
-                if name.endswith(pattern[1:]):
-                    return True
-            elif name == pattern or name.startswith(pattern):
-                return True
-        
-        return False
-    
-    def _get_icon(self, path):
-        """Get icon for file/folder."""
-        if not self.icons:
-            return ''
-        
-        if path.is_dir():
-            return '📁 '
-        
-        # Check specific filenames first
-        for key, icon in self.FILE_ICONS.items():
-            if not key.startswith('.') and path.name.lower().startswith(key.lower()):
-                return f'{icon} '
-        
-        # Check extension
-        ext = path.suffix.lower()
-        return self.FILE_ICONS.get(ext, '📄 ')
-    
-    def _format_size(self, size):
-        """Format file size."""
-        for unit in ['B', 'KB', 'MB', 'GB']:
-            if size < 1024.0:
-                return f"{size:.1f}{unit}"
-            size /= 1024.0
-        return f"{size:.1f}TB"
-    
-    def _get_file_info(self, path):
-        """Get formatted file information."""
-        icon = self._get_icon(path)
-        name = path.name
-        
-        if path.is_file() and self.show_size:
-            try:
-                size = path.stat().st_size
-                self.stats['total_size'] += size
-                return f"{icon}{name} [{self._format_size(size)}]"
-            except (OSError, PermissionError):
-                return f"{icon}{name} [?]"
-        
-        return f"{icon}{name}"
-    
-    def _build_tree(self, tree, path, prefix="", depth=0):
-        """Recursively build tree structure."""
-        if self.max_depth is not None and depth >= self.max_depth:
-            return
-        
-        try:
-            # Get all items in directory
-            items = sorted(path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower()))
-            
-            for item in items:
-                if self._should_ignore(item):
-                    continue
-                
-                if item.is_dir():
-                    self.stats['dirs'] += 1
-                    branch = tree.add(self._get_file_info(item), style="bold cyan")
-                    self._build_tree(branch, item, prefix + "  ", depth + 1)
-                else:
-                    self.stats['files'] += 1
-                    # Color code by file type
-                    if item.suffix in ['.py', '.js', '.java', '.cpp', '.go']:
-                        style = "green"
-                    elif item.suffix in ['.html', '.css', '.json', '.yaml']:
-                        style = "blue"
-                    elif item.suffix in ['.md', '.txt']:
-                        style = "yellow"
-                    else:
-                        style = "white"
-                    
-                    tree.add(self._get_file_info(item), style=style)
-        
-        except PermissionError:
-            tree.add("[Permission Denied]", style="red italic")
-    
-    def generate(self):
-        """Generate and display the tree."""
-        # Create root tree
-        root_info = f"{self._get_icon(self.root_path)}{self.root_path.name}"
-        tree = Tree(root_info, style="bold magenta", guide_style="dim")
-        
-        # Build the tree
-        self._build_tree(tree, self.root_path)
-        
-        # Display tree
-        console.print()
-        console.print(tree)
-        console.print()
-        
-        # Display statistics
-        stats_text = (
-            f"📊 [cyan]{self.stats['dirs']}[/cyan] directories, "
-            f"[green]{self.stats['files']}[/green] files"
-        )
-        
-        if self.show_size:
-            stats_text += f", Total size: [yellow]{self._format_size(self.stats['total_size'])}[/yellow]"
-        
-        console.print(Panel(stats_text, title="Statistics", border_style="blue"))
     
     def save_to_file(self, output_file='tree.txt', format='text'):
         """Save tree to file."""
