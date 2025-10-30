@@ -11,7 +11,7 @@ except FileNotFoundError:
 
 setup(
     name="saini",
-    version="1.0.5",
+    version="1.0.6",
     
     # Description
     description="Developer productivity toolkit: time tracking, Pomodoro timer, project tree visualization, and automation tools",
@@ -70,6 +70,15 @@ setup(
             "black>=22.0",
             "flake8>=4.0",
             "mypy>=0.950",
+        ],
+
+         'ml': [
+            'torch>=1.9.0',
+            'onnx>=1.10.0',
+            'onnxoptimizer>=0.2.6',
+            'tensorflow>=2.6.0',
+            'tf2onnx>=1.9.0',
+            'coremltools>=5.0.0',
         ],
     },
     

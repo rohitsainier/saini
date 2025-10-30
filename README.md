@@ -7,7 +7,7 @@
 
 **Developer productivity toolkit by Rohit Saini**
 
-Saini is a comprehensive command-line toolkit designed to boost developer productivity with intelligent time tracking, beautiful project visualization, and automation tools.
+Saini is a comprehensive command-line toolkit designed to boost developer productivity with intelligent time tracking, beautiful project visualization, ML model conversion, and automation tools.
 
 ## ✨ Features
 
@@ -30,20 +30,42 @@ Saini is a comprehensive command-line toolkit designed to boost developer produc
 - **Activity Monitoring**: Tracks git commits and file changes
 - **Seamless Resume**: Pick up right where you left off
 
-### 🌳 Project Tree Visualization
+### 🌳 Project Tree Visualization & Analysis
 - **Beautiful Output**: Rich, colorful tree structure with icons
 - **Smart Filtering**: Auto-ignore node_modules, .git, build artifacts
 - **File Information**: Optional file sizes and statistics
 - **Multiple Formats**: Export to text or JSON
 - **Customizable Depth**: Control how deep to traverse
-- **Hidden Files**: Optionally show/hide hidden files
+- **Structure Analysis**: AI-powered best practices suggestions
+- **Health Score**: Get a project structure health rating
+- **SOLID Principles**: Check adherence to design principles
+
+### 🤖 ML Model Conversion
+- **PyTorch → ONNX**: Convert PyTorch models with optimization
+- **TensorFlow → ONNX**: Support for Keras and SavedModel formats
+- **ONNX → CoreML**: Deploy models to iOS/macOS
+- **Auto-Conversion**: Direct conversion between any supported formats
+- **Batch Processing**: Convert multiple models at once
+- **Model Verification**: Automatic validation and info display
+- **Optimization**: Built-in ONNX model optimization
 
 ## 📦 Installation
 
-### From PyPI (Recommended)
+### Basic Installation (Time Tracking + Tree)
 
 ```bash
 pip install saini
+```
+
+### Full Installation (Including ML Conversion)
+
+```bash
+# Install with ML support
+pip install "saini[ml]"
+
+# Or install ML dependencies separately
+pip install saini
+pip install torch onnx tensorflow tf2onnx coremltools
 ```
 
 ### From Source
@@ -52,12 +74,17 @@ pip install saini
 git clone https://github.com/rohitsainier/saini.git
 cd saini
 ./install.sh
+
+# For ML support
+pip install torch onnx tensorflow tf2onnx coremltools
 ```
 
 ### Upgrade
 
 ```bash
 pip install --upgrade saini
+# or
+pip install --upgrade "saini[ml]"
 ```
 
 ## 🚀 Quick Start
@@ -68,7 +95,7 @@ pip install --upgrade saini
 # Start tracking your work
 saini start "Implementing user authentication"
 
-# Check current status
+# Check current status with live timer
 saini status
 
 # Take a break
@@ -84,23 +111,43 @@ saini stop
 saini report today
 ```
 
-### Project Tree
+### Project Tree & Analysis
 
 ```bash
 # Show project structure
 saini tree
 
-# Limit depth to 3 levels
-saini tree -d 3
+# Analyze structure with best practices suggestions
+saini tree --analyze
+
+# Limit depth to 3 levels with analysis
+saini tree -d 3 --analyze
 
 # Show file sizes
 saini tree -s
 
 # Save to file
 saini tree -o project-structure.txt
+```
 
-# Export as JSON
-saini tree -o structure.json -f json
+### Model Conversion
+
+```bash
+# PyTorch to ONNX
+saini convert pytorch-onnx model.pth model.onnx -s 1,3,224,224
+
+# TensorFlow to ONNX
+saini convert tf-onnx model.h5 model.onnx
+
+# ONNX to CoreML
+saini convert onnx-coreml model.onnx model.mlmodel --target iOS15
+
+# Direct PyTorch to CoreML (via ONNX)
+saini convert auto model.pt model.mlmodel \
+    --from pytorch --to coreml -s 1,3,224,224
+
+# Batch convert multiple models
+saini convert batch models/ output/ --from pytorch --to onnx -s 1,3,224,224
 ```
 
 ### Configuration
@@ -130,7 +177,9 @@ saini config show
 | `saini switch [description]` | Switch to new task | `saini switch "Code review"` |
 | `saini pause` | Pause current session | `saini pause` |
 | `saini resume` | Resume paused session | `saini resume` |
-| `saini status` | Show current status | `saini status` |
+| `saini status` | Show live status | `saini status` |
+| `saini status --static` | Show static snapshot | `saini status --static` |
+| `saini dashboard` | Show live dashboard | `saini dashboard` |
 
 ### Report Commands
 
@@ -143,20 +192,12 @@ saini config show
 | `saini export csv [file]` | Export to CSV | `saini export csv report.csv` |
 | `saini export json [file]` | Export to JSON | `saini export json report.json` |
 
-### Configuration Commands
-
-| Command | Description | Example |
-|---------|-------------|---------|
-| `saini config show` | Show all settings | `saini config show` |
-| `saini config pomodoro [on\|off]` | Toggle Pomodoro timer | `saini config pomodoro on` |
-| `saini config idle [on\|off]` | Toggle idle detection | `saini config idle on` |
-| `saini config idle-time [min]` | Set idle threshold | `saini config idle-time 15` |
-
 ### Project Tree Commands
 
 | Command | Description | Example |
 |---------|-------------|---------|
 | `saini tree` | Show project tree | `saini tree` |
+| `saini tree --analyze` | Show tree with analysis | `saini tree --analyze` |
 | `saini tree -p [path]` | Specify custom path | `saini tree -p /path/to/project` |
 | `saini tree -d [depth]` | Limit depth | `saini tree -d 3` |
 | `saini tree -a` | Show hidden files | `saini tree -a` |
@@ -165,6 +206,25 @@ saini config show
 | `saini tree -f [format]` | Output format (text\|json) | `saini tree -f json` |
 | `saini tree -i [pattern]` | Ignore pattern | `saini tree -i "*.log"` |
 | `saini tree --no-icons` | Disable icons | `saini tree --no-icons` |
+
+### Model Conversion Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `saini convert pytorch-onnx` | PyTorch to ONNX | `saini convert pytorch-onnx model.pth out.onnx -s 1,3,224,224` |
+| `saini convert tf-onnx` | TensorFlow to ONNX | `saini convert tf-onnx model.h5 out.onnx` |
+| `saini convert onnx-coreml` | ONNX to CoreML | `saini convert onnx-coreml model.onnx out.mlmodel` |
+| `saini convert auto` | Auto-convert any format | `saini convert auto model.pt out.mlmodel --from pytorch --to coreml -s 1,3,224,224` |
+| `saini convert batch` | Batch convert models | `saini convert batch models/ out/ --from pytorch --to onnx -s 1,3,224,224` |
+
+### Configuration Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `saini config show` | Show all settings | `saini config show` |
+| `saini config pomodoro [on\|off]` | Toggle Pomodoro timer | `saini config pomodoro on` |
+| `saini config idle [on\|off]` | Toggle idle detection | `saini config idle on` |
+| `saini config idle-time [min]` | Set idle threshold | `saini config idle-time 15` |
 
 ## 💡 Usage Examples
 
@@ -175,15 +235,15 @@ saini config show
 saini config pomodoro on
 saini start "Sprint planning and standup"
 
-# Check what you're tracking
+# Check what you're tracking (live updating)
 saini status
 # Output:
-# ⚡ Active Session
+# 🔴 Active Session - LIVE
 #   Project:  my-awesome-app
 #   Branch:   feature/user-auth
 #   Task:     Sprint planning and standup
-#   Duration: 15m 30s
-#   🍅 Pomodoro: Work Session #1
+#   ⏱️  00:15:30
+#   🍅 Pomodoro Session #1
 #   Time Left: 9m 30s
 
 # Switch to coding
@@ -200,38 +260,99 @@ saini stop
 saini report today
 ```
 
-### Example 2: Project Analysis
+### Example 2: Project Structure Analysis
 
 ```bash
-# Understand project structure
-saini tree -s -d 3
+# Analyze project structure with best practices
+saini tree --analyze
 
 # Output:
 # 📁 my-awesome-app
 # ├── 📁 src
-# │   ├── 📁 components
-# │   │   ├── ⚛️ Header.jsx [2.3KB]
-# │   │   └── ⚛️ Footer.jsx [1.8KB]
-# │   ├── 🐍 main.py [5.2KB]
-# │   └── 📋 config.json [892B]
+# │   ├── 🐍 __init__.py
+# │   ├── 🐍 main.py
+# │   └── 📁 utils
 # ├── 📁 tests
-# │   └── 🐍 test_main.py [3.1KB]
-# ├── 📝 README.md [4.5KB]
-# └── 📋 package.json [1.2KB]
+# ├── 📝 README.md
+# └── 📋 setup.py
 #
-# 📊 3 directories, 8 files, Total size: 19.0KB
-
-# Save for documentation
-saini tree -o STRUCTURE.md
-
-# Export as JSON for analysis
-saini tree -o structure.json -f json
-
-# Analyze only source code (ignore build files)
-saini tree -i "dist" -i "node_modules" -i "*.min.js"
+# ═══════════════════════════════════════════════════
+# 
+# 📋 Analysis
+# Project Type: PYTHON
+#
+# 🏆 Structure Health Score
+# 85/100 - Good ⭐⭐
+#
+# ⚠️  Warnings (Should Fix):
+#   • Missing requirements.txt
+#     Consider adding requirements.txt: Python dependencies list
+#
+# 💡 Suggestions (Consider):
+#   • No docs directory
+#     Consider creating a 'docs/' directory for detailed documentation
+#
+# 📚 Best Practices
+#   📦 Use a 'src/' directory for your package code
+#   🧪 Keep tests in a separate 'tests/' directory
+#   📝 Document modules with docstrings
+#   ...
 ```
 
-### Example 3: Weekly Review
+### Example 3: ML Model Conversion Pipeline
+
+```bash
+# Convert PyTorch model to ONNX
+saini convert pytorch-onnx resnet50.pth resnet50.onnx -s 1,3,224,224
+
+# Output:
+# 🔄 Converting PyTorch → ONNX
+#   Model: resnet50.pth
+#   Output: resnet50.onnx
+# Loading PyTorch model... ████████████████████ 100%
+# ✓ Successfully converted to ONNX
+#
+# ┌─── ONNX Model Info ───┐
+# │ IR Version    │ 8     │
+# │ Opset Version │ 11    │
+# │ Inputs        │ input: [1, 3, 224, 224] │
+# │ Outputs       │ output: [1, 1000] │
+# │ File Size     │ 97.8 MB │
+# └───────────────────────┘
+
+# Convert ONNX to CoreML for iOS deployment
+saini convert onnx-coreml resnet50.onnx resnet50.mlmodel \
+    --target iOS15 --precision FLOAT16 --name ResNet50
+
+# Direct conversion PyTorch → CoreML
+saini convert auto mobilenet.pt mobilenet.mlmodel \
+    --from pytorch --to coreml \
+    -s 1,3,224,224 \
+    --target iOS16 \
+    --precision FLOAT16
+
+# Batch convert all PyTorch models in a directory
+saini convert batch pytorch_models/ onnx_models/ \
+    --from pytorch --to onnx -s 1,3,224,224
+```
+
+### Example 4: TensorFlow/Keras to CoreML
+
+```bash
+# Convert Keras model to ONNX
+saini convert tf-onnx my_model.h5 my_model.onnx
+
+# Then to CoreML
+saini convert onnx-coreml my_model.onnx my_model.mlmodel \
+    --target iOS15 --name MyAwesomeModel
+
+# Or do it in one step
+saini convert auto my_model.h5 my_model.mlmodel \
+    --from tensorflow --to coreml \
+    --target iOS15 --precision FLOAT16
+```
+
+### Example 5: Weekly Review
 
 ```bash
 # See weekly summary
@@ -246,32 +367,16 @@ saini report week
 # 
 # By Project:
 #   my-awesome-app      12h 30m
-#   client-website      8h 45m
+#   ml-pipeline         8h 45m
 #   saini-package       5h 20m
 # 
 # Total: 26h 35m
 
 # Export for timesheet
-saini export csv 
+saini export csv weekly_report.csv
 ```
 
-### Example 4: Multi-Project Development
-
-```bash
-# Working on project A
-cd ~/projects/project-a
-saini start "Feature development"
-
-# Switch to project B (auto-detects new project)
-cd ~/projects/project-b
-saini switch "Bug fix"
-
-# Check time per project
-saini report project project-a
-saini report project project-b
-```
-
-### Example 5: Pomodoro Power User
+### Example 6: Pomodoro Power User
 
 ```bash
 # Enable Pomodoro with idle detection
@@ -289,68 +394,135 @@ saini start "Deep work - algorithm optimization"
 
 # Check status anytime
 saini status
-# Output:
-# ⚡ Active Session
-#   Project:  algorithm-lab
-#   Branch:   optimization
-#   Task:     Deep work - algorithm optimization
-#   Duration: 1h 45m 30s
-#   🍅 Pomodoro: Work Session #5
-#   Time Left: 18m 12s
 ```
 
 ## 🎨 Screenshots
 
 ### Time Tracking Status
 ```
-⚡ Active Session
+🔴 Time Tracker - LIVE
   Project:  saini
   Branch:   main
-  Task:     Adding tree visualization feature
+  Task:     Adding ML model conversion
   Started:  2024-01-15 10:00:00
-  Duration: 45m 30s
-  🍅 Pomodoro: Work Session #2
-  Time Left: 12m 15s
+  
+  ⏱️  01:45:30
+  
+  🍅 Pomodoro Session #5
+  [████████████░░░░░░░░] 60%
+  Time Left: 10m 00s
+  
+Press Ctrl+C to exit live view
 ```
 
-### Project Tree
+### Project Tree with Analysis
 ```
 📁 saini
 ├── 📁 saini
 │   ├── 🐍 __init__.py
 │   ├── 🐍 cli.py
 │   ├── 🐍 tracker.py
-│   ├── 🐍 pomodoro.py
-│   ├── 🐍 idle_detection.py
-│   ├── 🐍 reports.py
-│   ├── 🐍 config.py
-│   ├── 🐍 tree.py
-│   └── 🐍 utils.py
+│   ├── 🐍 converter.py
+│   ├── 🐍 analyzer.py
+│   └── 🐍 tree.py
 ├── 📝 README.md
 ├── 📋 setup.py
-├── 📋 requirements.txt
-├── 🔧 install.sh
-└── 🔧 publish.sh
+└── 📋 requirements.txt
 
 📊 2 directories, 13 files
+
+🏆 Structure Health Score: 92/100 - Excellent ⭐⭐⭐
 ```
 
-### Configuration
+### Model Conversion Progress
 ```
-╔════════════════════════════════════════════╗
-║     Time Tracker Configuration             ║
-╚════════════════════════════════════════════╝
+🔄 Converting PyTorch → ONNX
+  Model: resnet50.pth
+  Output: resnet50.onnx
 
-Setting               Value
-─────────────────────────────────────────────
-Pomodoro Mode         ✓ Enabled
-Pomodoro Work Time    25 minutes
-Pomodoro Break Time   5 minutes
-Pomodoro Long Break   15 minutes
-Idle Detection        ✓ Enabled
-Idle Threshold        10 minutes
+Converting to ONNX... ████████████████████ 100%
+
+✓ Successfully converted to ONNX
+
+┌────────── ONNX Model Info ──────────┐
+│ Property       │ Value               │
+├────────────────┼─────────────────────┤
+│ IR Version     │ 8                   │
+│ Opset Version  │ 11                  │
+│ Inputs         │ input: [1,3,224,224]│
+│ Outputs        │ output: [1, 1000]   │
+│ File Size      │ 97.8 MB             │
+└────────────────┴─────────────────────┘
 ```
 
+## 🤖 Model Conversion Details
+
+### Supported Conversions
+
+| From | To | Via | Status |
+|------|-----|-----|--------|
+| PyTorch | ONNX | Direct | ✅ |
+| TensorFlow | ONNX | Direct | ✅ |
+| Keras | ONNX | Direct | ✅ |
+| ONNX | CoreML | Direct | ✅ |
+| PyTorch | CoreML | ONNX | ✅ |
+| TensorFlow | CoreML | ONNX | ✅ |
+
+### PyTorch Conversion Options
+
+```bash
+saini convert pytorch-onnx MODEL OUTPUT -s SHAPE [OPTIONS]
+
+Options:
+  -s, --input-shape TEXT      Input tensor shape (required) e.g., 1,3,224,224
+  --input-names TEXT          Comma-separated input names
+  --output-names TEXT         Comma-separated output names
+  --opset INTEGER            ONNX opset version (default: 11)
+  --no-optimize              Skip ONNX optimization
+```
+
+### TensorFlow Conversion Options
+
+```bash
+saini convert tf-onnx MODEL OUTPUT [OPTIONS]
+
+Options:
+  --opset INTEGER            ONNX opset version (default: 11)
+  --no-optimize              Skip ONNX optimization
+```
+
+### CoreML Conversion Options
+
+```bash
+saini convert onnx-coreml MODEL OUTPUT [OPTIONS]
+
+Options:
+  --name TEXT                Model name (default: ConvertedModel)
+  --target TEXT              Deployment target: iOS13, iOS14, iOS15, iOS16,
+                            macOS10_15, macOS11, macOS12 (default: iOS13)
+  --precision TEXT           Compute precision: FLOAT32, FLOAT16 (default: FLOAT32)
+```
+
+### Auto Conversion
+
+```bash
+saini convert auto MODEL OUTPUT --from FRAMEWORK --to FORMAT [OPTIONS]
+
+Frameworks: pytorch, tensorflow, keras, onnx
+Formats: onnx, coreml
+
+All options from specific converters are supported
+```
+
+### Batch Conversion
+
+```bash
+saini convert batch MODELS_DIR OUTPUT_DIR --from FRAMEWORK --to FORMAT [OPTIONS]
+
+Example:
+  saini convert batch models/ output/ --from pytorch --to onnx -s 1,3,224,224
+  saini convert batch onnx_models/ coreml/ --from onnx --to coreml --target iOS15
+```
 
 ## ⚙️ Configuration
 
@@ -388,6 +560,9 @@ cd saini
 
 # Install in development mode
 ./install.sh
+
+# Install with ML support
+pip install torch onnx tensorflow tf2onnx coremltools
 
 # Or use Make
 make install
@@ -427,9 +602,9 @@ make build
 ./publish.sh
 
 # With version bump
-./publish.sh -v patch  # 1.0.0 -> 1.0.1
-./publish.sh -v minor  # 1.0.0 -> 1.1.0
-./publish.sh -v major  # 1.0.0 -> 2.0.0
+./publish.sh -v patch  # 1.0.5 -> 1.0.6
+./publish.sh -v minor  # 1.0.5 -> 1.1.0
+./publish.sh -v major  # 1.0.5 -> 2.0.0
 
 # Or use Make
 make test-publish
@@ -439,6 +614,7 @@ make publish
 ## 🛠️ Makefile Commands
 
 ```bash
+make help           # Show all available commands
 make install        # Install package locally
 make reinstall      # Reinstall package
 make clean          # Clean build artifacts
@@ -453,14 +629,26 @@ make version-major  # Bump major version
 
 ## 📋 Requirements
 
+### Core Requirements
 - Python >= 3.7
 - Git (for project/branch detection and idle detection)
-- Dependencies:
-  - click >= 8.0.0
-  - rich >= 10.0.0
-  - gitpython >= 3.1.0
-  - pandas >= 1.3.0
-  - tabulate >= 0.8.9
+
+### Core Dependencies
+- click >= 8.0.0
+- rich >= 10.0.0
+- gitpython >= 3.1.0
+- pandas >= 1.3.0
+- tabulate >= 0.8.9
+
+### Optional ML Dependencies (for model conversion)
+- torch >= 1.9.0
+- onnx >= 1.10.0
+- onnxoptimizer >= 0.2.6
+- tensorflow >= 2.6.0
+- tf2onnx >= 1.9.0
+- coremltools >= 5.0.0
+
+Install with: `pip install "saini[ml]"`
 
 ## 🐛 Troubleshooting
 
@@ -472,6 +660,36 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # Add to ~/.bashrc or ~/.zshrc for persistence
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```
+
+### Issue: ML conversion dependencies
+
+```bash
+# Install ML dependencies separately if needed
+pip install torch onnx tensorflow tf2onnx coremltools
+
+# Or install specific framework
+pip install torch onnx  # For PyTorch conversion
+pip install tensorflow tf2onnx  # For TensorFlow conversion
+pip install coremltools  # For CoreML conversion
+```
+
+### Issue: ONNX conversion fails
+
+```bash
+# Try different opset version
+saini convert pytorch-onnx model.pth output.onnx -s 1,3,224,224 --opset 13
+
+# Check PyTorch model format
+# Model should be the actual model, not just state_dict
+```
+
+### Issue: CoreML conversion fails
+
+```bash
+# Make sure ONNX model is valid first
+# Try with FLOAT32 instead of FLOAT16
+saini convert onnx-coreml model.onnx output.mlmodel --precision FLOAT32
 ```
 
 ### Issue: Notifications not working
@@ -496,28 +714,25 @@ git init
 saini tree -p /path/to/git/repo
 ```
 
-### Issue: Permission denied on install
-
-```bash
-# Use pip with --user flag
-pip install --user saini
-
-# Or use sudo (not recommended)
-sudo pip install saini
-```
-
 ## 🗺️ Roadmap
 
-### Version 1.x
+### Version 1.0 ✅
 - [x] Time tracking with pause/resume
 - [x] Pomodoro timer with notifications
 - [x] Idle detection
 - [x] Project tree visualization
+- [x] Project structure analysis
 - [x] Multiple report formats
 - [x] CSV/JSON export
+- [x] ML model conversion (PyTorch, TensorFlow, ONNX, CoreML)
 
-### Version 2.x (Planned)
+### Version 1.1 (In Progress)
 - [ ] `.gitignore` aware tree generation
+- [ ] Model quantization support
+- [ ] Model performance benchmarking
+- [ ] ONNX Runtime integration
+
+### Version 2.0 (Planned)
 - [ ] Code complexity analysis
 - [ ] Duplicate code detection
 - [ ] Dead code finder
@@ -530,6 +745,9 @@ sudo pip install saini
 - [ ] Tree diff between git commits
 - [ ] AI-powered time estimation
 - [ ] Automatic time categorization
+- [ ] TensorRT conversion support
+- [ ] OpenVINO support
+- [ ] Model compression tools
 
 ## 🤝 Contributing
 
@@ -549,6 +767,18 @@ Contributions are welcome! Here's how you can help:
 - Add tests for new features
 - Update documentation
 - Run tests before submitting PR
+- Use type hints where appropriate
+- Add docstrings to all functions
+
+### Areas for Contribution
+
+- 🐛 Bug fixes
+- ✨ New features
+- 📝 Documentation improvements
+- 🧪 Test coverage
+- 🎨 UI/UX improvements
+- 🌍 Internationalization
+- ⚡ Performance optimizations
 
 ## 📄 License
 
@@ -559,13 +789,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Rohit Saini**
 
 - GitHub: [@rohitsainier](https://github.com/rohitsainier)
-- Email: rohitsainier@example.com
+- Email: rohitsainier@gmail.com
 - Twitter: [@rohitsainier](https://twitter.com/rohitsainier)
 
 ## 🙏 Acknowledgments
 
 - Inspired by the need for better developer productivity tools
 - Built with [Click](https://click.palletsprojects.com/) and [Rich](https://rich.readthedocs.io/)
+- ML conversion powered by [ONNX](https://onnx.ai/), [PyTorch](https://pytorch.org/), [TensorFlow](https://www.tensorflow.org/), and [CoreML Tools](https://coremltools.readme.io/)
 - Thanks to all contributors and users!
 
 ## 📊 Stats
@@ -573,142 +804,61 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ![GitHub stars](https://img.shields.io/github/stars/rohitsainier/saini?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/rohitsainier/saini?style=social)
 ![GitHub watchers](https://img.shields.io/github/watchers/rohitsainier/saini?style=social)
+![GitHub issues](https://img.shields.io/github/issues/rohitsainier/saini)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/rohitsainier/saini)
 
 ## 💬 Support
 
 - **Issues**: [GitHub Issues](https://github.com/rohitsainier/saini/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/rohitsainier/saini/discussions)
-- **Email**: rohitsainier@example.com
+- **Documentation**: [Wiki](https://github.com/rohitsainier/saini/wiki)
+- **Email**: rohitsainier@gmail.com
 
 ## 🌟 Star History
 
 If you find Saini useful, please consider giving it a star! ⭐
 
+[![Star History Chart](https://api.star-history.com/svg?repos=rohitsainier/saini&type=Date)](https://star-history.com/#rohitsainier/saini&Date)
+
 ## 📈 Changelog
 
+### Version 1.0.5 (Current)
+- ✨ Added ML model conversion support
+  - PyTorch to ONNX conversion
+  - TensorFlow/Keras to ONNX conversion
+  - ONNX to CoreML conversion
+  - Auto-conversion between formats
+  - Batch conversion support
+- 🎨 Added project structure analysis
+- 🏆 Health score for project structure
+- 💡 Best practices suggestions
+- 🐛 Various bug fixes and improvements
+
 ### Version 1.0.0 (2024-01-15)
-- Initial release
-- Time tracking with pause/resume
-- Pomodoro timer integration
-- Idle detection
-- Project tree visualization
-- Report generation (today, yesterday, week)
-- CSV/JSON export
-- Configuration management
-- Beautiful CLI with Rich
-- Installation and publishing scripts
+- 🎉 Initial release
+- ⏱️ Time tracking functionality
+- 🍅 Pomodoro timer with desktop notifications
+- 👁️ Idle detection based on git activity
+- 🌳 Project tree visualization with icons
+- 📊 Multiple report formats
+- 💾 CSV and JSON export
+- ⚙️ Configuration management
+- 🎨 Beautiful CLI with Rich library
 
 ---
 
 **Made with ❤️ by Rohit Saini**
 
 *Boost your productivity, one commit at a time!*
-```
 
-## Additional Documentation Files
+---
 
-### `CONTRIBUTING.md`
+## Quick Links
 
-```markdown
-# Contributing to Saini
-
-Thank you for your interest in contributing to Saini! 🎉
-
-## Getting Started
-
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/saini.git`
-3. Create a branch: `git checkout -b feature/your-feature`
-4. Make your changes
-5. Test your changes: `./install.sh -r && pytest`
-6. Commit: `git commit -m 'Add some feature'`
-7. Push: `git push origin feature/your-feature`
-8. Open a Pull Request
-
-## Development Setup
-
-```bash
-# Install in development mode
-./install.sh
-
-# Install dev dependencies
-pip install pytest pytest-cov black flake8 mypy
-
-# Run tests
-pytest tests/
-
-# Format code
-black saini/
-
-# Lint
-flake8 saini/
-```
-
-## Code Style
-
-- Follow PEP 8
-- Use Black for formatting
-- Add docstrings to all functions
-- Write tests for new features
-
-## Pull Request Guidelines
-
-- Update README.md if needed
-- Add tests for new features
-- Ensure all tests pass
-- Update CHANGELOG.md
-
-## Questions?
-
-Open an issue or discussion!
-```
-
-### `CHANGELOG.md`
-
-```markdown
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-## [1.0.0] - 2024-01-15
-
-### Added
-- Initial release
-- Time tracking functionality
-- Pomodoro timer with desktop notifications
-- Idle detection based on git activity
-- Project tree visualization with icons
-- Multiple report formats (today, yesterday, week, project)
-- CSV and JSON export
-- Configuration management
-- Beautiful CLI with Rich library
-- Installation script (install.sh)
-- Publishing script (publish.sh)
-- Makefile for common tasks
-
-### Features
-- Auto-detect project and branch from git
-- Pause/resume time tracking
-- 25-minute Pomodoro sessions with 5-minute breaks
-- Customizable idle detection threshold
-- File size information in tree view
-- Export tree to text or JSON
-- Comprehensive documentation
-
-## [Unreleased]
-
-### Planned
-- .gitignore aware tree
-- Code complexity analysis
-- Duplicate code detection
-- Integration with GitHub/Jira
-- Team collaboration features
-```
-
-Now you have a complete, professional README! 🚀
-
-Want me to create any other documentation files like:
-- API documentation
-- Architecture diagram
-- Tutorial/Guide
-- FAQ section?
+- [Installation Guide](#-installation)
+- [Quick Start](#-quick-start)
+- [Command Reference](#-complete-command-reference)
+- [Model Conversion Guide](#-model-conversion-details)
+- [Configuration](#%EF%B8%8F-configuration)
+- [Contributing](#-contributing)
+- [License](#-license)

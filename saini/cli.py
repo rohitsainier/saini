@@ -7,6 +7,7 @@ from .reports import Reports
 from .tree import ProjectTree
 from . import __version__
 from .dashboard import show_dashboard
+from .converter import ModelConverter
 
 console = Console()
 
@@ -221,6 +222,192 @@ def tree_ignore(path):
     """Generate tree respecting .gitignore patterns."""
     console.print("🚧 Feature coming soon: Tree with .gitignore support", style="yellow")
     # TODO: Implement gitignore-aware tree
+
+# ============================================================================
+# MODEL CONVERSION COMMANDS
+# ============================================================================
+@main.group()
+def convert():
+    """Convert models between formats (PyTorch/TF → ONNX → CoreML)."""
+    pass
+
+@convert.command(name='pytorch-onnx')
+@click.argument('model_path')
+@click.argument('output_path')
+@click.option('--input-shape', '-s', required=True, help='Input shape (e.g., 1,3,224,224)')
+@click.option('--input-names', help='Comma-separated input names')
+@click.option('--output-names', help='Comma-separated output names')
+@click.option('--opset', type=int, default=11, help='ONNX opset version')
+@click.option('--no-optimize', is_flag=True, help='Skip optimization')
+def convert_pytorch_onnx(model_path, output_path, input_shape, input_names, output_names, opset, no_optimize):
+    """Convert PyTorch model to ONNX.
+    
+    Examples:
+        saini convert pytorch-onnx model.pth model.onnx -s 1,3,224,224
+        saini convert pytorch-onnx model.pt output.onnx -s 1,3,224,224 --opset 13
+    """
+    converter = ModelConverter()
+    
+    kwargs = {
+        'input_shape': input_shape,
+        'opset_version': opset,
+        'optimize': not no_optimize
+    }
+    
+    if input_names:
+        kwargs['input_names'] = input_names.split(',')
+    if output_names:
+        kwargs['output_names'] = output_names.split(',')
+    
+    success = converter.pytorch_to_onnx(model_path, output_path, **kwargs)
+    
+    if not success:
+        raise click.Abort()
+
+@convert.command(name='tf-onnx')
+@click.argument('model_path')
+@click.argument('output_path')
+@click.option('--opset', type=int, default=11, help='ONNX opset version')
+@click.option('--no-optimize', is_flag=True, help='Skip optimization')
+def convert_tf_onnx(model_path, output_path, opset, no_optimize):
+    """Convert TensorFlow/Keras model to ONNX.
+    
+    Examples:
+        saini convert tf-onnx model.h5 model.onnx
+        saini convert tf-onnx saved_model/ model.onnx --opset 13
+    """
+    converter = ModelConverter()
+    
+    success = converter.tensorflow_to_onnx(
+        model_path,
+        output_path,
+        opset_version=opset,
+        optimize=not no_optimize
+    )
+    
+    if not success:
+        raise click.Abort()
+
+@convert.command(name='onnx-coreml')
+@click.argument('onnx_path')
+@click.argument('output_path')
+@click.option('--name', default='ConvertedModel', help='Model name')
+@click.option('--target', default='iOS13', 
+              type=click.Choice(['iOS13', 'iOS14', 'iOS15', 'iOS16', 'macOS10_15', 'macOS11', 'macOS12']),
+              help='Minimum deployment target')
+@click.option('--precision', default='FLOAT32',
+              type=click.Choice(['FLOAT32', 'FLOAT16']),
+              help='Compute precision')
+def convert_onnx_coreml(onnx_path, output_path, name, target, precision):
+    """Convert ONNX model to CoreML.
+    
+    Examples:
+        saini convert onnx-coreml model.onnx model.mlmodel
+        saini convert onnx-coreml model.onnx output.mlmodel --target iOS15 --precision FLOAT16
+    """
+    converter = ModelConverter()
+    
+    success = converter.onnx_to_coreml(
+        onnx_path,
+        output_path,
+        model_name=name,
+        minimum_deployment_target=target,
+        compute_precision=precision
+    )
+    
+    if not success:
+        raise click.Abort()
+
+@convert.command(name='auto')
+@click.argument('model_path')
+@click.argument('output_path')
+@click.option('--from', 'source_framework', required=True,
+              type=click.Choice(['pytorch', 'tensorflow', 'keras', 'onnx']),
+              help='Source framework')
+@click.option('--to', 'target_format', required=True,
+              type=click.Choice(['onnx', 'coreml']),
+              help='Target format')
+@click.option('--input-shape', '-s', help='Input shape for PyTorch (e.g., 1,3,224,224)')
+@click.option('--name', default='ConvertedModel', help='Model name for CoreML')
+@click.option('--target', default='iOS13', help='Deployment target for CoreML')
+@click.option('--precision', default='FLOAT32', help='Compute precision for CoreML')
+@click.option('--opset', type=int, default=11, help='ONNX opset version')
+def convert_auto(model_path, output_path, source_framework, target_format, input_shape, 
+                 name, target, precision, opset):
+    """Auto-convert between any supported formats.
+    
+    Examples:
+        # PyTorch → ONNX
+        saini convert auto model.pth model.onnx --from pytorch --to onnx -s 1,3,224,224
+        
+        # PyTorch → CoreML (via ONNX)
+        saini convert auto model.pt model.mlmodel --from pytorch --to coreml -s 1,3,224,224
+        
+        # TensorFlow → ONNX
+        saini convert auto model.h5 model.onnx --from tensorflow --to onnx
+        
+        # ONNX → CoreML
+        saini convert auto model.onnx model.mlmodel --from onnx --to coreml --target iOS15
+    """
+    converter = ModelConverter()
+    
+    kwargs = {
+        'model_name': name,
+        'deployment_target': target,
+        'precision': precision,
+        'opset_version': opset,
+        'optimize': True
+    }
+    
+    if input_shape:
+        kwargs['input_shape'] = input_shape
+    
+    success = converter.convert(
+        model_path,
+        output_path,
+        source_framework,
+        target_format,
+        **kwargs
+    )
+    
+    if not success:
+        raise click.Abort()
+
+@convert.command(name='batch')
+@click.argument('models_dir')
+@click.argument('output_dir')
+@click.option('--from', 'source_framework', required=True,
+              type=click.Choice(['pytorch', 'tensorflow', 'onnx']),
+              help='Source framework')
+@click.option('--to', 'target_format', required=True,
+              type=click.Choice(['onnx', 'coreml']),
+              help='Target format')
+@click.option('--input-shape', '-s', help='Input shape for PyTorch')
+@click.option('--target', default='iOS13', help='Deployment target for CoreML')
+def convert_batch(models_dir, output_dir, source_framework, target_format, input_shape, target):
+    """Batch convert multiple models.
+    
+    Examples:
+        saini convert batch models/ output/ --from pytorch --to onnx -s 1,3,224,224
+        saini convert batch onnx_models/ coreml_models/ --from onnx --to coreml
+    """
+    converter = ModelConverter()
+    
+    kwargs = {
+        'deployment_target': target,
+        'optimize': True
+    }
+    
+    if input_shape:
+        kwargs['input_shape'] = input_shape
+    
+    converter.batch_convert(
+        models_dir,
+        output_dir,
+        source_framework,
+        target_format,
+        **kwargs
+    )
 
 
 if __name__ == '__main__':
